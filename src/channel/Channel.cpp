@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 18:19:11 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/09/25 16:33:21 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/09/25 17:25:20 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,21 @@ int Channel::GetHasKey(){return this->has_key;}
 int Channel::GetInviteOnly(){return this->invite_only;}
 int Channel::GetLimit(){return this->limit;}
 int Channel::GetTopicRest(){return this->topic_rest;}
+bool Channel::ClientInChannel(std::string &nick)
+{
+	for(std::vector<Client>::iterator it = admins.begin(); it != admins.end(); it++)
+	{
+		if (it->getNickname() == nick)
+			return (true);
+	}
+	for(std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
+	{
+		if (it->getNickname() == nick)
+			return (true);
+	}
+	return false;
+}
+
 std::string Channel::GetChannelName(){return this->name;}
 std::string Channel::GetKey(){return this->key;}
 std::string Channel::GetTopicName(){return this->topic_name;}
@@ -70,22 +85,36 @@ std::string Channel::ClientChannelList()
 }
 Client *Channel::GetClient(int fd)
 {
-    for(std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
+	for(std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
 	{
-        if (it->getClientFd() == fd)
-            return &(*it);
-    }
-    return NULL;
+		if (it->getClientFd() == fd)
+			return &(*it);
+	}
+	return NULL;
 }
 
 Client *Channel::GetAdmin(int fd)
 {
-for(std::vector<Client>::iterator it = admins.begin(); it != admins.end(); it++)
+	for(std::vector<Client>::iterator it = admins.begin(); it != admins.end(); it++)
 	{
-        if (it->getClientFd() == fd)
-            return &(*it);
-    }
-    return NULL;
+		if (it->getClientFd() == fd)
+			return &(*it);
+	}
+	return NULL;
+}
+Client *Channel::GetPersonInChannel(std::string &nick)
+{
+	for(std::vector<Client>::iterator it = admins.begin(); it != admins.end(); it++)
+	{
+		if (it->getNickname() == nick)
+			return &(*it);
+	}
+	for(std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
+	{
+		if (it->getNickname() == nick)
+			return &(*it);
+	}
+	return NULL;
 }
 
 void Channel::SetInvitOnly(int invit_only){this->invite_only = invit_only;}
@@ -100,14 +129,14 @@ void Channel::addClient (Client newClient){clients.push_back(newClient);}
 void Channel::addAdmin (Client newClient){admins.push_back(newClient);}
 void Channel::removeClient (int fd)
 {
-    for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it){
+	for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); ++it){
 		if (it->getClientFd() == fd)
 			{clients.erase(it); break;}
 	}
 }
 void Channel::removeAdmin (int fd)
 {
-    for (std::vector<Client>::iterator it = admins.begin(); it != clients.end(); ++it){
+	for (std::vector<Client>::iterator it = admins.begin(); it != clients.end(); ++it){
 		if (it->getClientFd() == fd)
 			{admins.erase(it); break;}
 	}
@@ -115,7 +144,7 @@ void Channel::removeAdmin (int fd)
 
 bool Channel::changeClientToAdmin(std::string &nick)
 {
-    size_t i = 0;
+	size_t i = 0;
 	for(; i < clients.size(); i++){
 		if(clients[i].getNickname() == nick)
 			break;
@@ -130,7 +159,7 @@ bool Channel::changeClientToAdmin(std::string &nick)
 
 bool Channel::changeAdminToClient(std::string &nick)
 {
-    size_t i = 0;
+	size_t i = 0;
 	for(; i < admins.size(); i++){
 		if(admins[i].getNickname() == nick)
 			break;
@@ -145,7 +174,7 @@ bool Channel::changeAdminToClient(std::string &nick)
 
 void Channel::sendToAll(std::string rply)
 {
-    for(size_t i = 0; i < admins.size(); i++)
+	for(size_t i = 0; i < admins.size(); i++)
 		if(send(admins[i].getClientFd(), rply.c_str(), rply.size(),0) == -1)
 			std::cerr << "send() faild" << std::endl;
 	for(size_t i = 0; i < clients.size(); i++)

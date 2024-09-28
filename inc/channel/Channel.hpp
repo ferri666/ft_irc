@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:48:40 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/09/25 16:37:17 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/09/25 17:24:14 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,14 @@ class Channel
         int GetInviteOnly();
         int GetLimit();
         int GetTopicRest();
+        bool ClientInChannel(std::string &nick);
         std::string GetChannelName();
         std::string GetKey();
         std::string GetTopicName();
         std::string ClientChannelList();
         Client *GetClient(int fd);
         Client *GetAdmin(int fd);
+        Client *GetPersonInChannel(std::string &nick);
         
         // Setters
         void SetInvitOnly(int invit_only);
