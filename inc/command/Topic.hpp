@@ -1,37 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Nick.hpp                                           :+:      :+:    :+:   */
+/*   Topic.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 17:26:37 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/09/28 14:00:12 by vpeinado         ###   ########.fr       */
+/*   Created: 2024/10/01 14:17:14 by vpeinado          #+#    #+#             */
+/*   Updated: 2024/10/02 17:54:15 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef NICK_HPP
-#define NICK_HPP
+#ifndef Topic_HPP
+#define Topic_HPP
 
 #include "ACommand.hpp"
 #include "Server.hpp"
 
-class Nick : public ACommand
+class Topic : public ACommand
 {
     private:
 
         /*** Orthodox Canonical Form ***/
         
-        Nick(const Nick &src);
-        Nick &operator=(const Nick &src);
-        Nick();
+        Topic(const Topic &src);
+        Topic &operator=(const Topic &src);
+        Topic();
         
     public:
         
         /*** Orthodox Canonical Form ***/
         
-        Nick(Server &server);
-        ~Nick();
+        Topic(Server &server);
+        ~Topic();
 
         /*** MEMBER FUNCTIONS ***/
         
@@ -39,5 +39,4 @@ class Nick : public ACommand
         void run(std::vector<std::string> args, int fdClient);  
             
 };
-
 #endif

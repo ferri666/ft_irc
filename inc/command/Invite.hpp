@@ -1,37 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Nick.hpp                                           :+:      :+:    :+:   */
+/*   Invite.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 17:26:37 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/09/28 14:00:12 by vpeinado         ###   ########.fr       */
+/*   Created: 2024/10/01 13:01:42 by vpeinado          #+#    #+#             */
+/*   Updated: 2024/10/01 13:02:23 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef NICK_HPP
-#define NICK_HPP
+#ifndef Invite_HPP
+#define Invite_HPP
 
 #include "ACommand.hpp"
 #include "Server.hpp"
 
-class Nick : public ACommand
+class Invite : public ACommand
 {
     private:
 
         /*** Orthodox Canonical Form ***/
         
-        Nick(const Nick &src);
-        Nick &operator=(const Nick &src);
-        Nick();
+        Invite(const Invite &src);
+        Invite &operator=(const Invite &src);
+        Invite();
         
     public:
         
         /*** Orthodox Canonical Form ***/
         
-        Nick(Server &server);
-        ~Nick();
+        Invite(Server &server);
+        ~Invite();
 
         /*** MEMBER FUNCTIONS ***/
         

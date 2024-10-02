@@ -15,7 +15,7 @@ CFLAGS	=  -std=c++98 #-Wall -Wextra -Werror
 RM		= rm -f
 
 #Includes
-INC			= -I ./inc/ -I ./inc/channel/ -I ./inc/client/ -I ./inc/server/ -I ./inc/command/
+INC			= -I ./inc/ -I ./inc/channel/ -I ./inc/client/ -I ./inc/server/ -I ./inc/command
 
 #Source files
 SRC_DIR	= src/

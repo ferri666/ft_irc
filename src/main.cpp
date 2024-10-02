@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/14 19:10:55 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/09/23 16:43:52 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/02 15:28:52 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,11 @@ int parseArgs(char *port, char *password)
 
 int main(int argc, char **argv)
 {  
-    if (argc < 3 || parseArgs(argv[1], argv[2]) == 0)
+    if (argc != 3)
+    { 
+        std::cerr << "Usage: ./ircserv [port] [password]" << std::endl; return 1;
+    }
+    if (argc == 3 && parseArgs(argv[1], argv[2]) == 0)
     {   
         std::cerr << "Usage: ./ircserv [port] [password]" << std::endl; return 1;
     }

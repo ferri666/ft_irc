@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/09/22 20:02:50 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/02 16:18:50 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 #include "Pass.hpp"
 #include "User.hpp"
 #include "Nick.hpp"
+#include "Invite.hpp"
+#include "Join.hpp"
+#include "Privmsg.hpp"
+#include "Kick.hpp"
 
 /******************************************************************************
 * ------------------------------- CONSTRUCTORS ------------------------------ *
@@ -50,6 +54,16 @@ Client *Server::getUserByFd(int fd)
         return it->second;
     else 
         return NULL;
+}
+
+Client *Server::getUserByNick(std::string nick)
+{
+    for (std::map<int, Client *>::iterator it = this->_users.begin(); it != this->_users.end(); ++it)
+    {
+        if (it->second->getNickname() == nick)
+            return it->second;
+    }
+    return NULL;
 }
 
 std::map<int , Client *> const &Server::getUsers() const
@@ -180,8 +194,9 @@ void Server::listenAndPoll()
 void Server::runServer()
 {
     while(Server::_active)                                                  // Bucle principal del servidor, se ejecuta mientras el servidor este activo
-    {      
-        if (poll(this->_pollfds.data(), this->_pollfds.size(), -1) < 0)     // poll() monitorea los eventos de los sockets, -1 = Esperar indefinidamente, se llama en cada iteracion del bucle
+    {                                                                      
+        if ((poll(this->_pollfds.data(), this->_pollfds.size(), -1) < 0) 
+            && Server::_active)                                             // poll() monitorea los eventos de los sockets, -1 = Esperar indefinidamente, se llama en cada iteracion del bucle
         {                                                                   // monitoreando los cambios en los descriptores de archivo cada iteracion
             throw std::runtime_error("Error: poll");
             close(this->_serverFd);
@@ -189,7 +204,7 @@ void Server::runServer()
         }
 
         for (size_t i = 0; i < this->_pollfds.size(); i++)                  // Itera a través de todos los elementos del vector de pollfds
-        {
+        {                                                                   // Esperar 1 ms, para no consumir muchos recursos del sistema
             if (this->_pollfds[i].revents & POLLIN)                         // Si el fd tiene la flag POLLIN activada, significa que hay datos listos para ser leidos
             {
                 if (this->_pollfds[i].fd == this->_serverFd)                // Comprueba si el socket con eventos es el socket del servidor, lo que indica que un nuevo cliente está intentando conectarse
@@ -204,7 +219,21 @@ void Server::runServer()
 
 void Server::stopServer()
 {      
-    
+
+    // cerrar los socketa de los clientes y liberar la memoria
+    for (std::map<int, Client *>::iterator it = this->_users.begin(); it != this->_users.end(); it++)
+    {
+        send(it->first, "Server is shutting down\r\n", 26, 0);
+        delete it->second;
+    }    
+    for (size_t i = 0; i < _pollfds.size(); i++) {
+        if (_pollfds[i].fd != _serverFd) {   
+            close(_pollfds[i].fd);      
+        }
+    }
+    close(_serverFd);
+    // Log or print a message indicating the server has been shut down
+    std::cout << "Server stopped and all connections closed." << std::endl;   
 }
 
 /******************************************************************************
@@ -370,6 +399,8 @@ CommandType Server::getCommandType(const std::string& command)
         return CMD_PRIVMSG;
     if (command == "INVITE" || command == "/invite")
         return CMD_INVITE;
+    if (command == "INFO" || command == "/info")
+        return CMD_INFO;
     return CMD_UNKNOWN;
 }
 
@@ -380,7 +411,23 @@ void Server::printCmd(std::vector<std::string> &splited_cmd)
         std::cout << "splited_cmd[" << i << "]: " << splited_cmd[i] << std::endl;
     }
 }
-
+void Server::printInfo()
+{
+    //printar lista de canales
+    std::cout << "Channels: " << std::endl;
+    for (std::map<std::string, Channel *>::iterator it = this->_channels.begin(); it != this->_channels.end(); it++)
+    {
+        std::cout << "Channel: " << it->first << std::endl;
+        //printar lista de usuarios
+        std::cout << "Users: " << std::endl;
+        for (size_t i = 0; i < it->second->GetClients().size(); i++)
+            std::cout << "[" << i << "]User: " << it->second->GetClients()[i]->getNickname() << std::endl;
+        std::cout << "Admins: " << std::endl;
+        for (size_t i = 0; i < it->second->GetAdmins().size(); i++)
+            std::cout << "[" << i << "]Admin: " << it->second->GetAdmins()[i]->getNickname() << std::endl;
+    }
+    //printar lista de usuarios y sus canales    
+}
 void Server::parseCommand(std::string &command, int fd)
 {
     if (command.empty())                                            // Comprobamos si el comando esta vacio    
@@ -394,6 +441,9 @@ void Server::parseCommand(std::string &command, int fd)
     ACommand *commandHandler = NULL;                                // Puntero a la clase abstracta ACommand, inicializado a NULL, lo usaremos para crear los objetos de los comandos
     switch (cmdType)                                                
     {
+        case CMD_INFO:
+            printInfo();
+            break;
         case CMD_NICK:
             std::cout << "CMD_NICK" << std::endl;
             printCmd(splited_cmd);                                  // Imprimir el comando spliteado
@@ -420,9 +470,17 @@ void Server::parseCommand(std::string &command, int fd)
             break;
         case CMD_KICK:
             std::cout << "CMD_KICK" << std::endl;
+            printCmd(splited_cmd);
+            commandHandler = new Kick(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
             break;
         case CMD_JOIN:
             std::cout << "CMD_JOIN" << std::endl;
+            printCmd(splited_cmd); 
+            commandHandler = new Join(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
             break;
         case CMD_TOPIC:
             std::cout << "CMD_TOPIC" << std::endl;
@@ -432,9 +490,17 @@ void Server::parseCommand(std::string &command, int fd)
             break;
         case CMD_PRIVMSG:
             std::cout << "CMD_PRIVMSG" << std::endl;
+            printCmd(splited_cmd); 
+            commandHandler = new Privmsg(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
             break;
         case CMD_INVITE:
             std::cout << "CMD_INVITE" << std::endl;
+            printCmd(splited_cmd); 
+            commandHandler = new Invite(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
             break;
         default:
                 send(fd, "421 Unknown command\r\n", 21, 0);
@@ -451,4 +517,22 @@ void Server::signalHandler(int signum)                                 // Maneja
 {
     std::cout << "Interrupt signal (" << signum << ") received.\n";
     Server::_active = false;
+}
+
+/******************************************************************************
+* ------------------------------- CHANNELS ---------------------------------- *
+******************************************************************************/
+
+std::map<std::string, Channel *> &Server::getChannels()
+{
+    return this->_channels;
+}
+
+Channel *Server::getChannelByName(std::string channelName)
+{
+    std::map<std::string, Channel *>::iterator it = this->_channels.find(channelName);
+    if (it != this->_channels.end())
+        return it->second;
+    else
+        return NULL;
 }

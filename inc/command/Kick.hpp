@@ -1,37 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Nick.hpp                                           :+:      :+:    :+:   */
+/*   Kick.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/20 17:26:37 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/09/28 14:00:12 by vpeinado         ###   ########.fr       */
+/*   Created: 2024/09/30 13:27:36 by vpeinado          #+#    #+#             */
+/*   Updated: 2024/09/30 13:28:28 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef NICK_HPP
-#define NICK_HPP
+#ifndef KICK_HPP
+#define KICK_HPP
 
 #include "ACommand.hpp"
 #include "Server.hpp"
 
-class Nick : public ACommand
+class Kick : public ACommand
 {
     private:
 
         /*** Orthodox Canonical Form ***/
         
-        Nick(const Nick &src);
-        Nick &operator=(const Nick &src);
-        Nick();
+        Kick(const Kick &src);
+        Kick &operator=(const Kick &src);
+        Kick();
         
     public:
         
         /*** Orthodox Canonical Form ***/
         
-        Nick(Server &server);
-        ~Nick();
+        Kick(Server &server);
+        ~Kick();
 
         /*** MEMBER FUNCTIONS ***/
         
