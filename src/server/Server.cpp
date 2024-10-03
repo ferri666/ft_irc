@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/02 16:18:50 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/03 15:10:01 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -484,6 +484,10 @@ void Server::parseCommand(std::string &command, int fd)
             break;
         case CMD_TOPIC:
             std::cout << "CMD_TOPIC" << std::endl;
+            printCmd(splited_cmd); 
+            commandHandler = new Topic(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
             break;
         case CMD_MODE:
             std::cout << "CMD_MODE" << std::endl;
