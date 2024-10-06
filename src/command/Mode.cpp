@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 14:44:44 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/06 18:20:29 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/06 19:14:24 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void changeTopic(Channel *channel, char oper)
 		channel->SetTopicRestriction(0);
 }
 
-void changeKey(Channel *channel, char oper, std::vector<std::string> args, int *offset)
+void changeKey(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
 {
 	
 	if (oper == '+')
@@ -86,14 +86,15 @@ void changeKey(Channel *channel, char oper, std::vector<std::string> args, int *
 		channel->SetKey("");
 	}
 }
-void changeOper(Channel *channel, char oper, std::vector<std::string> args, int *offset)
+void changeOper(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
 {
 	if (args.size() < *offset + 4)
 	{
 		send(fdClient, "461 MODE :Need More Params\r\n", 29, 0);
 		return ;
 	}
-    Client *cli = channel->GetClientByName(args[3 + offset]);
+    std::string name = args[3 + *offset];
+    Client *cli = channel->GetClientByName(name);
     (*offset)++;
     if (cli == NULL)
     {
@@ -102,23 +103,42 @@ void changeOper(Channel *channel, char oper, std::vector<std::string> args, int 
     }
 	if (oper == '+')
 	{
-        if (channel->GetAdmin(cli->GetClientFd()) != NULL)
+        if (channel->GetAdmin(cli->getClientFd()) != NULL)
         {
-            send(fdClient, "400 MODE :Already an operator\r\n", 32, 0);
+            send(fdClient, "400 MODE :Already an operator\r\n", 33, 0);
 		    return ;
         }
 		else
-        channel->changeClientToAdmin(cli->getNickname);
+        channel->changeClientToAdmin(name);
 	}
 	else if (oper == '-')
 	{
-        if (channel->GetAdmin(cli->GetClientFd()) == NULL)
+        if (channel->GetAdmin(cli->getClientFd()) == NULL)
         {
-            send(fdClient, "400 MODE :Not an operator\r\n", 32, 0);
+            send(fdClient, "400 MODE :Not an operator\r\n", 28, 0);
 		    return ;
         }
 		else
-        channel->changeAdminToClient(cli->getNickname);
+        channel->changeAdminToClient(name);
+	}
+}
+
+void changeLimit(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
+{
+	if (oper == '+')
+	{
+        if (args.size() < *offset + 4)
+        {
+            send(fdClient, "461 MODE :Need More Params\r\n", 29, 0);
+            return ;
+        }
+        std::string num = args[3 + *offset];
+        (*offset)++;
+        channel->SetLimit(atoi(num.c_str()));
+	}
+	else if (oper == '-')
+	{
+        channel->SetLimit(0);
 	}
 }
 
@@ -161,11 +181,11 @@ void Mode::run(std::vector<std::string> args, int fdClient)
 				else if (modeset[i] == 't')
 					changeTopic(channel, oper);
 				else if (modeset[i] == 'k')
-					changeKey(channel, oper, args, &offset);
+					changeKey(channel, oper, args, &offset, fdClient);
 				else if (modeset[i] == 'o')
-					changeOper(channel, oper, args, &offset);
+					changeOper(channel, oper, args, &offset, fdClient);
 				else if (modeset[i] == 'l')
-					;
+					changeLimit(channel, oper, args, &offset, fdClient);
 				else
 					send(fdClient, "472 MODE :is unknown mode char to me\r\n", 39, 0);
 			}
