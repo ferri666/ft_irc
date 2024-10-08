@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/04 17:28:55 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/08 10:13:58 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,13 @@
 #include "Pass.hpp"
 #include "User.hpp"
 #include "Nick.hpp"
-#include "Invite.hpp"
 #include "Join.hpp"
 #include "Privmsg.hpp"
 #include "Kick.hpp"
+#include "Ping.hpp"
+#include "Invite.hpp"
 #include "Topic.hpp"
+#include "Mode.hpp"
 
 /******************************************************************************
 * ------------------------------- CONSTRUCTORS ------------------------------ *
@@ -97,8 +99,8 @@ void Server::setWelcomeMessage()
         "*************************************************\n"
         "*          Welcome to the IRC Server!           *\n"
         "*   1. Use PASS <password> to log in            *\n"
-        "*   2. Use USER <username> 0 * :<realname>      *\n"
-        "*   3. Use NICK <nickname> to set your nickname *\n"
+        "*   2. Use NICK <nickname> to set your nickname *\n"  
+        "*   3. Use USER <username> 0 * :<realname>      *\n"
         "*************************************************\n";
 }
 
@@ -148,6 +150,7 @@ void Server::configServerAddr()                                      // sockaddr
     this->_serverAddr.sin_family = AF_INET;                          // Familia de direcciones, AF_INET = IPv4
     this->_serverAddr.sin_addr.s_addr = INADDR_ANY;                  // Recibir conexiones de cualquier direccion IP, 0.0.0.0               
     this->_serverAddr.sin_port = htons(this->_port);                 // Puerto del servidor, htons() convierte el entero corto sin signo del host al formato de red
+    this->_serverHost = "127.0.0.1";                                 // Direccion IP del servidor, localhost
 }
 
 void Server::setSocketOptions()
@@ -402,6 +405,10 @@ CommandType Server::getCommandType(const std::string& command)
         return CMD_INVITE;
     if (command == "INFO" || command == "/info")
         return CMD_INFO;
+    if (command == "PING" || command == "/ping")
+        return CMD_PING;
+    if (command == "CAP" || command == "/cap")
+        return CMD_CAP;
     return CMD_UNKNOWN;
 }
 
@@ -411,14 +418,17 @@ void Server::printCmd(std::vector<std::string> &splited_cmd)
     {
         std::cout << "splited_cmd[" << i << "]: " << splited_cmd[i] << std::endl;
     }
+    std::endl(std::cout);
 }
 void Server::printInfo()
 {
+    
     //printar lista de canales
     std::cout << "Channels: " << std::endl;
     for (std::map<std::string, Channel *>::iterator it = this->_channels.begin(); it != this->_channels.end(); it++)
     {
         std::cout << "Channel: " << it->first << std::endl;
+        std::cout << "Key: " << it->second->GetKey() << std::endl;
         //printar lista de usuarios
         std::cout << "Users: " << std::endl;
         for (size_t i = 0; i < it->second->GetClients().size(); i++)
@@ -442,6 +452,8 @@ void Server::parseCommand(std::string &command, int fd)
     ACommand *commandHandler = NULL;                                // Puntero a la clase abstracta ACommand, inicializado a NULL, lo usaremos para crear los objetos de los comandos
     switch (cmdType)                                                
     {
+        case CMD_CAP:
+            break;
         case CMD_INFO:
             printInfo();
             break;
@@ -456,6 +468,13 @@ void Server::parseCommand(std::string &command, int fd)
             std::cout << "CMD_USER" << std::endl;
             printCmd(splited_cmd);
             commandHandler = new User(*this);
+            commandHandler->run(splited_cmd, fd);
+            delete commandHandler;
+            break;
+       case CMD_PING:
+            std::cout << "CMD_PING" << std::endl;
+            printCmd(splited_cmd);
+            commandHandler = new Ping(*this);
             commandHandler->run(splited_cmd, fd);
             delete commandHandler;
             break;
@@ -485,10 +504,6 @@ void Server::parseCommand(std::string &command, int fd)
             break;
         case CMD_TOPIC:
             std::cout << "CMD_TOPIC" << std::endl;
-            printCmd(splited_cmd); 
-            commandHandler = new Topic(*this);
-            commandHandler->run(splited_cmd, fd);
-            delete commandHandler;
             break;
         case CMD_MODE:
             std::cout << "CMD_MODE" << std::endl;
@@ -498,17 +513,16 @@ void Server::parseCommand(std::string &command, int fd)
             printCmd(splited_cmd); 
             commandHandler = new Privmsg(*this);
             commandHandler->run(splited_cmd, fd);
-            delete commandHandler;
             break;
         case CMD_INVITE:
             std::cout << "CMD_INVITE" << std::endl;
             printCmd(splited_cmd); 
             commandHandler = new Invite(*this);
             commandHandler->run(splited_cmd, fd);
-            delete commandHandler;
             break;
         default:
-                send(fd, "421 Unknown command\r\n", 21, 0);
+            std::string response = ": 421 " + this->getUserByFd(fd)->getNickname() + splited_cmd[0] + " :Unknown command\r\n";
+            send(fd, response.c_str(), response.size(), 0);  //falla su impresion
             break;
     }    
 }
@@ -540,4 +554,24 @@ Channel *Server::getChannelByName(std::string channelName)
         return it->second;
     else
         return NULL;
+}
+
+/******************************************************************************
+* ------------------------------- SEND -------------------------------------- *
+******************************************************************************/
+
+
+void Server::sendError(int code, std::string clientname, std::string channelname, int fd, std::string msg)
+{
+	std::stringstream ss;
+	ss << ":" << this->_serverHost << " " << code << " " << clientname << " " << channelname << msg;
+	std::string resp = ss.str();
+	if(send(fd, resp.c_str(), resp.size(),0) == -1)
+		std::cerr << "Error send() fail" << std::endl;
+}
+
+void Server::sendResponse(std::string response, int fd)
+{
+	if(send(fd, response.c_str(), response.size(), 0) == -1)
+		std::cerr << "Response send() fail" << std::endl;
 }

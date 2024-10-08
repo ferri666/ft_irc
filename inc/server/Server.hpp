@@ -6,7 +6,7 @@
 /*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 12:21:04 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/01 13:15:19 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/05 20:35:38 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,9 @@ enum CommandType {
     CMD_PRIVMSG,
     CMD_INVITE,
     CMD_UNKNOWN,
-    CMD_INFO
+    CMD_INFO,
+    CMD_PING,
+    CMD_CAP
 };
 
 class Server
@@ -65,6 +67,7 @@ class Server
         std::string _serverName;
         std::string _password;
         std::string _welcomeMessage;
+        std::string _serverHost;
         static bool _active;
         
         /*** SOCKETS and POLL ***/
@@ -139,6 +142,11 @@ class Server
         /*** SIGNALS ***/
 
         static void signalHandler(int signal);
+
+        /*** SEND ***/
+
+        void sendError(int code, std::string clientname, std::string channelname, int fd, std::string msg);
+        void sendResponse(std::string response, int fd);
                                   
 };
     

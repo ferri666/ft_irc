@@ -3,15 +3,12 @@
 /*                                                        :::      ::::::::   */
 /*   Join.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 19:51:25 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/02 15:25:35 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/09/28 16:47:00 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-#ifndef Join_HPP
-#define Join_HPP
 
 #include "ACommand.hpp"
 #include "Server.hpp"
@@ -39,5 +36,3 @@ class Join : public ACommand
         void run(std::vector<std::string> args, int fdClient);
     
 };
-
-#endif
