@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 14:44:44 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/06 19:14:24 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/08 12:31:44 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void changeTopic(Channel *channel, char oper)
 		channel->SetTopicRestriction(0);
 }
 
-void changeKey(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
+void changeKey(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
 	
 	if (oper == '+')
@@ -86,7 +86,7 @@ void changeKey(Channel *channel, char oper, std::vector<std::string> args, int *
 		channel->SetKey("");
 	}
 }
-void changeOper(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
+void changeOper(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
 	if (args.size() < *offset + 4)
 	{
@@ -123,7 +123,7 @@ void changeOper(Channel *channel, char oper, std::vector<std::string> args, int 
 	}
 }
 
-void changeLimit(Channel *channel, char oper, std::vector<std::string> args, int *offset, int fdClient)
+void changeLimit(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
 	if (oper == '+')
 	{
@@ -168,7 +168,7 @@ void Mode::run(std::vector<std::string> args, int fdClient)
 	}
 	else
 	{
-		int offset = 0;
+		size_t offset = 0;
 		std::string modeset = args[2];
 		for(size_t i = 0; i < modeset.size(); i++)
 		{
