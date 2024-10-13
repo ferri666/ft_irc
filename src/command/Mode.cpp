@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 14:44:44 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/12 16:49:24 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/13 17:50:29 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,9 @@ void changeTopic(Channel *channel, char oper)
 		channel->SetTopicRestriction(0);
 }
 
-void changeKey(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
+void Mode::changeKey(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
-    std:string channelName = channel->GetChannelName();
+    std::string channelName = channel->GetChannelName();
 	if (oper == '+')
 	{
         if (args.size() < *offset + 4)
@@ -89,9 +89,9 @@ void changeKey(Channel *channel, char oper, std::vector<std::string> args, size_
 		channel->SetKey("");
 	}
 }
-void changeOper(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
+void Mode::changeOper(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
-    std:string channelName = channel->GetChannelName();
+    std::string channelName = channel->GetChannelName();
 	if (args.size() < *offset + 4)
 	{
 		this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :Not enough parameters\r\n");
@@ -102,8 +102,7 @@ void changeOper(Channel *channel, char oper, std::vector<std::string> args, size
     (*offset)++;
     if (cli == NULL)
     {
-         "<client> <nick> <channel> :They aren't on that channel"
-        send(fdClient, "441 MODE :They aren't on that channel\r\n", 40, 0);
+        this->_server.sendError(441, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :They aren't on that channel\r\n");
 		return ;
     }
 	if (oper == '+')
@@ -128,11 +127,11 @@ void changeOper(Channel *channel, char oper, std::vector<std::string> args, size
 	}
 }
 
-void changeLimit(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
+void Mode::changeLimit(Channel *channel, char oper, std::vector<std::string> args, size_t *offset, int fdClient)
 {
 	if (oper == '+')
 	{
-        std:string channelName = channel->GetChannelName();
+        std::string channelName = channel->GetChannelName();
         if (args.size() < *offset + 4)
         {
             this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :Not enough parameters\r\n");
