@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/03 14:44:44 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/13 17:50:29 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/14 14:24:46 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,7 +168,7 @@ void Mode::run(std::vector<std::string> args, int fdClient)
 		if (channel->GetLimit() > 0)
 			modes += "l";
 		if (modes.size())
-			rply += " +" + modes;
+			rply += " +" + modes + "\r\n";
 		send(fdClient, rply.c_str(), rply.size(), 0);
 	}
 	else
@@ -194,7 +194,7 @@ void Mode::run(std::vector<std::string> args, int fdClient)
                 else if (modeset[i] == ' ')
                     continue ;
 				else
-					this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), channel->GetChannelName(), fdClient, " :Not enough parameters\r\n");
+					this->_server.sendError(472, this->_server.getUserByFd(fdClient)->getNickname(), modeset, fdClient, " :is unknwown mode char to me\r\n");
 			}
 		}
 	}

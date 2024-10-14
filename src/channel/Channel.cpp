@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 18:19:11 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/01 12:10:13 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/14 14:35:53 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,7 +146,6 @@ bool Channel::changeClientToAdmin(std::string &nick)
 	}
 	if(i < clients.size()){
 		admins.push_back(clients[i]);
-		clients.erase(i + clients.begin());
 		return true;
 	}
 	return false;
@@ -160,7 +159,6 @@ bool Channel::changeAdminToClient(std::string &nick)
 			break;
 	}
 	if(i < admins.size()){
-		clients.push_back(admins[i]);
 		admins.erase(i + admins.begin());
 		return true;
 	}
