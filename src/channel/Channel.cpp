@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 18:19:11 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/14 14:35:53 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/15 10:57:52 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,14 +52,6 @@ std::string Channel::GetTopicName(){return this->topic_name;}
 std::string Channel::ClientChannelList()
 {
 	std::string list;
-	for(size_t i = 0; i < admins.size(); i++)
-	{
-		list += "@" + admins[i]->getNickname();
-		if ((i + 1 ) < admins.size())
-			list += " ";
-	}
-	if (clients.size())
-		list += " ";
 	for(size_t i = 0; i < clients.size(); i++)
 	{
 		list += clients[i]->getNickname();
