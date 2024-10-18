@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Nick.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/20 17:39:42 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/18 12:08:44 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/18 13:51:02 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ int Nick::isValidNickname(std::string& nickname)
 		return 0;
 	for(size_t i = 1; i < nickname.size(); i++)
 	{
-		if(!std::isalnum(nickname[i]) && nickname[i] != '_')
+		if(!std::isalnum(nickname[i]) && nickname[i] != '_' && nickname[i] != '-')
 			return 0;
 	}
 	return 1;
