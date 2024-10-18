@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/18 13:39:44 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/18 16:03:48 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -380,6 +380,8 @@ void Server::deleteFromAllChannels(int fd)
             it->second->removeClient(fd);
         if (it->second->isClientAdmin(fd))
             it->second->removeAdmin(fd);
+        if (it->second->isClientInvited(fd))
+            it->second->removeInvitedClient(fd);
         it++;
     }
 }
