@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/18 12:36:16 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/18 13:39:44 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,12 +373,14 @@ void Server::deleteClientPollFd(int fd)
 void Server::deleteFromAllChannels(int fd)
 {
     std::map<std::string, Channel *> canales = this->getChannels();
-    for(size_t i = 0; i < canales.size(); i++)
+    std::map<std::string, Channel *>::iterator it = canales.begin();
+    while (it != canales.end())
     {
-        if (canales[i].isClientInChannel(fd))
-            canales[i].removeClient(fd);
-        if (canales[i].isClientAdmin(fd))
-            canales[i].removeAdmin(fd);
+        if (it->second->isClientInChannel(fd))
+            it->second->removeClient(fd);
+        if (it->second->isClientAdmin(fd))
+            it->second->removeAdmin(fd);
+        it++;
     }
 }
 
