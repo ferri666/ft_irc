@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 18:19:11 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/15 10:57:52 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/16 13:56:57 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,14 @@ std::string Channel::GetTopicName(){return this->topic_name;}
 std::string Channel::ClientChannelList()
 {
 	std::string list;
+	for(size_t i = 0; i < admins.size(); i++)
+	{
+		list += "@" + admins[i]->getNickname();
+		if ((i + 1 ) < admins.size())
+			list += " ";
+	}
+	if (clients.size())
+		list += " ";
 	for(size_t i = 0; i < clients.size(); i++)
 	{
 		list += clients[i]->getNickname();
@@ -63,6 +71,7 @@ std::string Channel::ClientChannelList()
 
 std::vector<Client *> Channel::GetClients(){return this->clients;}
 std::vector<Client *> Channel::GetAdmins(){return this->admins;}
+std::vector<int> Channel::GetInvitedClients(){return this->_invitedClients;}
 
 Client *Channel::GetClient(int fd)
 {
@@ -114,6 +123,7 @@ void Channel::SetName(std::string nam){this->name = nam;}
 
 void Channel::addClient (Client *newClient){clients.push_back(newClient);}
 void Channel::addAdmin (Client *newClient){admins.push_back(newClient);}
+void Channel::addInvitedClients(int fd){_invitedClients.push_back(fd);}
 void Channel::removeClient (int fd)
 {
     for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); ++it){
@@ -138,6 +148,7 @@ bool Channel::changeClientToAdmin(std::string &nick)
 	}
 	if(i < clients.size()){
 		admins.push_back(clients[i]);
+		clients.erase(i + clients.begin());
 		return true;
 	}
 	return false;
@@ -151,6 +162,7 @@ bool Channel::changeAdminToClient(std::string &nick)
 			break;
 	}
 	if(i < admins.size()){
+		clients.push_back(admins[i]);
 		admins.erase(i + admins.begin());
 		return true;
 	}

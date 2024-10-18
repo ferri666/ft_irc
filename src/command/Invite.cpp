@@ -6,7 +6,7 @@
 /*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 13:01:35 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/06 19:51:05 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:08:44 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,15 @@ Invite::~Invite()
 
 int Invite::validArgs(std::vector<std::string> args, int fdClient)
 {
+    if (this->_server.getUserByFd(fdClient)->getNickname() == "" 
+        || this->_server.getUserByFd(fdClient)->getUsername() == "" 
+        || this->_server.getUserByFd(fdClient)->getRealname() == "")
+    {
+        std::string channelName = ""; 
+        std::string nickName = "";
+        this->_server.sendError(451, nickName, channelName, fdClient, " :You have not registered\r\n");
+        return 0;
+    }
     std::string channelName = "";
     if (args.size() < 3)
     {
@@ -48,6 +57,8 @@ int Invite::validArgs(std::vector<std::string> args, int fdClient)
 
 void Invite::run(std::vector<std::string> args, int fdClient)
 {
+    if (this->validArgs(args, fdClient) == 0)
+        return;  // Validar los argumentos
     std::string channelName = args[2];                       // Nombre del canal
     std::string nickname = args[1];                           // Nickname del usuario a invitar
     Channel *channel = this->_server.getChannelByName(channelName); // Buscar el canal por nombre
@@ -83,7 +94,7 @@ void Invite::run(std::vector<std::string> args, int fdClient)
         this->_server.sendError(443, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :is already on channel\r\n");
         return;
     }
-    channel->addClient(invitedClient); // Añadir el usuario al canal
+    channel->addInvitedClients(invitedClient->getClientFd()); // Añadir el usuario al canal
     std::string inviteMsg = ": 341 " + this->_server.getUserByFd(fdClient)->getNickname() + " " + invitedClient->getNickname() + " " + channelName + "\r\n";
     send(fdClient, inviteMsg.c_str(), inviteMsg.size(), 0); // Enviar mensaje de exito
     std::string invite = ":" + invitedClient->getHostName() + 

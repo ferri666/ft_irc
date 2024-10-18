@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Mode.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/03 14:44:44 by ffons-ti          #+#    #+#             */
-/*   Updated: 2024/10/14 14:24:46 by ffons-ti         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Mode.hpp"
 
 /*****************************************************************************
@@ -32,7 +20,15 @@ Mode::~Mode()
 
 int Mode::validArgs(std::vector<std::string> args, int fdClient)
 {
-    
+    if (this->_server.getUserByFd(fdClient)->getNickname() == "" 
+        || this->_server.getUserByFd(fdClient)->getUsername() == "" 
+        || this->_server.getUserByFd(fdClient)->getRealname() == "")
+    {
+        std::string channelName = ""; 
+        std::string nickName = "";
+        this->_server.sendError(451, nickName, channelName, fdClient, " :You have not registered\r\n");
+        return 0;
+    }
     std::string channelName = "";
 	if (args.size() < 2)
 	{
@@ -158,7 +154,7 @@ void Mode::run(std::vector<std::string> args, int fdClient)
 	if (args.size() == 2)
 	{
 		std::string modes;
-		std::string rply = "324 " + channel->GetChannelName();
+		std::string rply = ": 324 " + this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName();
 		if (channel->GetTopicRest())
 			modes += "t";
 		if (channel->GetInviteOnly())
@@ -169,6 +165,8 @@ void Mode::run(std::vector<std::string> args, int fdClient)
 			modes += "l";
 		if (modes.size())
 			rply += " +" + modes + "\r\n";
+        else
+            rply += " \r\n";
 		send(fdClient, rply.c_str(), rply.size(), 0);
 	}
 	else

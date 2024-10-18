@@ -6,7 +6,7 @@
 /*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 15:53:24 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/14 14:13:04 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:36:16 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 #include "Kick.hpp"
 #include "Ping.hpp"
 #include "Invite.hpp"
-#include "Topic.hpp"
 #include "Mode.hpp"
+#include "Topic.hpp"
 
 /******************************************************************************
 * ------------------------------- CONSTRUCTORS ------------------------------ *
@@ -74,6 +74,11 @@ std::map<int , Client *> const &Server::getUsers() const
     return this->_users;
 }
 
+std::string &Server::getHost()
+{
+    return this->_serverHost;
+}
+
 /******************************************************************************
 * ------------------------------- SETTERS ----------------------------------- *
 **************************************************************************** */
@@ -120,7 +125,7 @@ void Server::printServerInfo()
     std::cout << "╠════════════════════════════════════════════════════════╣" << std::endl;
     std::cout << "║                🚀 Server is up and running!            ║" << std::endl;
     std::cout << "╚════════════════════════════════════════════════════════╝" << std::endl;
-    }
+}
 void Server::startServer()
 {   
     setSocket();                  // Crear el socket
@@ -209,8 +214,8 @@ void Server::runServer()
 
         for (size_t i = 0; i < this->_pollfds.size(); i++)                  // Itera a través de todos los elementos del vector de pollfds
         {                                                                   // Esperar 1 ms, para no consumir muchos recursos del sistema
-            if (this->_pollfds[i].revents & POLLIN)                         // Si el fd tiene la flag POLLIN activada, significa que hay datos listos para ser leidos
-            {
+            if (this->_pollfds[i].revents & POLLIN)                         // Si el resultado de la operacion & es verdadero(1), 0x01 = 0x01, POLLIN = POLLIN la condicion es verdadera
+            {                                                               // POLLIN es una mascara de bits que indica que hay datos para leer y la operacion &
                 if (this->_pollfds[i].fd == this->_serverFd)                // Comprueba si el socket con eventos es el socket del servidor, lo que indica que un nuevo cliente está intentando conectarse
                     this->newClientConnection();                            // Si es el socket del servidor, llama a la función para aceptar nuevas conexiones de clientes
                 else
@@ -288,9 +293,9 @@ void Server::reciveNewData(int fd)
     else if (bytes == 0)                                                            // Si recv devuelve 0, el cliente se ha desconectado
     {
         std::cout << "Client disconnected, fd: " << fd << std::endl;
-        this->deleteClientPollFd(fd);                                               // Borrar el cliente de la listas, estructuras, etc  
-        this->deleteFromClientList(fd);
-        //borrar tambien de los canales, y dentro de los canales, borrar de los usuarios y de los privilegios
+        this->deleteClientPollFd(fd);
+        this->deleteFromAllChannels(fd);                                            // Borrar el cliente de la listas, estructuras, etc  
+        this->deleteFromClientList(fd);       
         close(fd);
     }
     else                                                                            // Si recv devuelve un valor positivo, se han recibido datos
@@ -306,8 +311,8 @@ void Server::reciveNewData(int fd)
                 this->parseCommand(data[i], client->getClientFd());                 // Parsear los comando
             }
             if (this->getUserByFd(fd))                                              // Limpiar el buffer del cliente, si este sigue conectado
-            {
-                this->getUserByFd(fd)->getBuffer().clear();                                           
+            {    
+                this->getUserByFd(fd)->getBuffer().clear();                         // solo lo limpiamos porque seguiremos interactuando con el cliente                                                          
             }
         }
         else
@@ -362,6 +367,18 @@ void Server::deleteClientPollFd(int fd)
             this->_pollfds.erase(this->_pollfds.begin() + i);
             break;
         }
+    }
+}
+
+void Server::deleteFromAllChannels(int fd)
+{
+    std::map<std::string, Channel *> canales = this->getChannels();
+    for(size_t i = 0; i < canales.size(); i++)
+    {
+        if (canales[i].isClientInChannel(fd))
+            canales[i].removeClient(fd);
+        if (canales[i].isClientAdmin(fd))
+            canales[i].removeAdmin(fd);
     }
 }
 
@@ -436,6 +453,9 @@ void Server::printInfo()
         std::cout << "Admins: " << std::endl;
         for (size_t i = 0; i < it->second->GetAdmins().size(); i++)
             std::cout << "[" << i << "]Admin: " << it->second->GetAdmins()[i]->getNickname() << std::endl;
+        std::cout << "Invited: " << std::endl;
+        for (size_t i = 0; i < it->second->GetInvitedClients().size(); i++)
+            std::cout << "[" << i << "]Invited: " << it->second->GetInvitedClients()[i] << std::endl;
     }
     //printar lista de usuarios y sus canales    
 }
@@ -443,6 +463,14 @@ void Server::parseCommand(std::string &command, int fd)
 {
     if (command.empty())                                            // Comprobamos si el comando esta vacio    
         return;
+    // if (this->getUserByFd(fd)->getUsername().empty())               // Comprobamos si el usuario esta conectado, quiza dentro de cada comando                          
+    // {
+    //     std::string channelName = "";
+    //     this->sendError(451, 
+    //             this->getUserByFd(fd)->getNickname(), 
+    //             channelName, fd, " :You have not registered\r\n");        
+    //     return;
+    // }
     std::vector<std::string> splited_cmd = splitCmd(command);       // Splitear el comando por los espacios
     CommandType cmdType = CMD_UNKNOWN;                              // Tipo de comando, una variable de tipo CommandType(enum), inicializado a CMD_UNKNOWN
     if (splited_cmd.size() > 0)                                     // Si el comando spliteado tiene mas de 0 elementos
@@ -530,7 +558,7 @@ void Server::parseCommand(std::string &command, int fd)
             break;
         default:
             std::string response = ": 421 " + this->getUserByFd(fd)->getNickname() + splited_cmd[0] + " :Unknown command\r\n";
-            send(fd, response.c_str(), response.size(), 0);  //falla su impresion
+            send(fd, response.c_str(), response.size(), 0);
             break;
     }    
 }
@@ -576,6 +604,15 @@ void Server::sendError(int code, std::string clientname, std::string channelname
 	std::string resp = ss.str();
 	if(send(fd, resp.c_str(), resp.size(),0) == -1)
 		std::cerr << "Error send() fail" << std::endl;
+}
+
+void Server::sendError(int code, std::string clientname, int fd, std::string msg)
+{
+	std::stringstream ss;
+	ss << ":" << this->_serverHost << " " << code << " " << clientname << msg;
+	std::string resp = ss.str();
+	if(send(fd, resp.c_str(), resp.size(),0) == -1)
+		std::cerr << "send() faild" << std::endl;
 }
 
 void Server::sendResponse(std::string response, int fd)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Topic.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 14:17:17 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/11 14:45:42 by ffons-ti         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:08:44 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,19 @@ Topic::~Topic()
 
 int Topic::validArgs(std::vector<std::string> args, int fdClient)
 {
+    if (this->_server.getUserByFd(fdClient)->getNickname() == "" 
+        || this->_server.getUserByFd(fdClient)->getUsername() == "" 
+        || this->_server.getUserByFd(fdClient)->getRealname() == "")
+    {
+        std::string channelName = ""; 
+        std::string nickName = "";
+        this->_server.sendError(451, nickName, channelName, fdClient, " :You have not registered\r\n");
+        return 0;
+    }
     std::string channelName = "";
     if (args.size() < 2)
     {
-        this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :Not enough parameters\r\n");
+        this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), fdClient, " :Not enough parameters\r\n");
         return 0;
     }
     Channel *chan = this->_server.getChannelByName(args[1]);
@@ -50,11 +59,11 @@ int Topic::validArgs(std::vector<std::string> args, int fdClient)
         this->_server.sendError(442, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :You're not on that channel\r\n");
         return 0;
     }
-    if (args.size() == 3)
+    if (args.size() >= 3)
     {
         if(args[2][0] != ':')
         {
-            this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :Not enough parameters\r\n");
+            this->_server.sendError(461, this->_server.getUserByFd(fdClient)->getNickname(), fdClient, " :Not enough parameters\r\n");
             return 0;
         }
     }
@@ -71,16 +80,23 @@ void Topic::run(std::vector<std::string> args, int fdClient)
     {
         std::string rply;
         if (channel->GetTopicName().size() == 0)
-            rply = this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName() + " :" + channel->GetTopicName();
+            rply = ": 331 " + this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName() + " :No topic is set\r\n";
         else
-            rply = this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName() + " :No topic is set";
+            rply = ": 332 " + this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName() + " :" + channel->GetTopicName() + "\r\n";
         this->_server.sendResponse(rply, fdClient);
     }
     else
     {
-        if (channel->GetTopicRest() == 1 && channel->GetAdmin(fdClient) == NULL)
+        if (channel->GetTopicRest() == 1 || channel->isClientAdmin(fdClient) == 0)
             this->_server.sendError(482, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :You're not channel operator\r\n");
         else
-            channel->SetTopicName(args[2].substr(1, args[2].length()-1));
+        {
+            std::string topic = args[2];
+            for (size_t i = 3; i < args.size(); i++)
+                topic += " " + args[i];
+            channel->SetTopicName(topic.substr(1));
+            std::string rply = ": 332 " + this->_server.getUserByFd(fdClient)->getNickname() + " " + channel->GetChannelName() + " :" + channel->GetTopicName() + "\r\n";
+            this->_server.sendResponse(rply, fdClient);  
+        }           
     }
 }

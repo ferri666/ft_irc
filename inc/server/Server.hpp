@@ -6,7 +6,7 @@
 /*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/13 12:21:04 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/05 20:35:38 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/18 01:12:02 by vpeinado         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,7 @@ class Server
         Client *getUserByFd(int fd);
         Client *getUserByNick(std::string nick);
         std::string const &getPassword() const;
+        std::string &getHost();
              
         /*** SETTERS ***/
 
@@ -116,7 +117,6 @@ class Server
         void runServer();
         void stopServer();
 
-
         /*** CLIENTS ***/
         
         void newClientConnection();
@@ -124,11 +124,11 @@ class Server
         std::vector<std::string> parseRecvData(std::string buffer);
         void deleteFromClientList(int fd);
         void deleteClientPollFd(int fd);
+        void deleteFromAllChannels(int fd);
 
         /*** CHANNELS ***/
         
-        Channel *getChannelByName(std::string channelName);                         //nueva
-        void deleteChannel(std::string channel);                        //nueva
+        Channel *getChannelByName(std::string channelName);     //nueva
         std::map<std::string, Channel *> &getChannels();       //nueva
         
         /*** COMMANDS ***/
@@ -146,6 +146,7 @@ class Server
         /*** SEND ***/
 
         void sendError(int code, std::string clientname, std::string channelname, int fd, std::string msg);
+        void sendError(int code, std::string clientname, int fd, std::string msg);
         void sendResponse(std::string response, int fd);
                                   
 };
