@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Topic.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vpeinado <victor@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ffons-ti <ffons-ti@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/01 14:17:17 by vpeinado          #+#    #+#             */
-/*   Updated: 2024/10/18 12:08:44 by vpeinado         ###   ########.fr       */
+/*   Updated: 2024/10/20 17:13:06 by ffons-ti         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void Topic::run(std::vector<std::string> args, int fdClient)
     }
     else
     {
-        if (channel->GetTopicRest() == 1 || channel->isClientAdmin(fdClient) == 0)
+        if (channel->GetTopicRest() == 1 && channel->isClientAdmin(fdClient) == 0)
             this->_server.sendError(482, this->_server.getUserByFd(fdClient)->getNickname(), channelName, fdClient, " :You're not channel operator\r\n");
         else
         {
